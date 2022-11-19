@@ -8,7 +8,8 @@ Purpose: Learn rust by implementing some basics of the language
 use clap::Parser;
 use regex::Regex;
 
-const EMAIL_REGEX: &str = r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})";
+const EMAIL_REGEX: &str =
+    r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})";
 
 #[derive(Parser)]
 struct Cli {
@@ -40,13 +41,16 @@ impl Email {
                     extra_qualifier: String::from(items[1]),
                     domain: String::from(items[2]),
                 },
-                _ => panic!("invalid email components.")
+                _ => panic!("invalid email components."),
             };
         }
         panic!("invalid email.");
     }
     fn prettyprint(&self) {
-        println!("{0: <15} | {1: <15} | {2: <15}", &self.username, &self.extra_qualifier, &self.domain);
+        println!(
+            "{0: <15} | {1: <15} | {2: <15}",
+            &self.username, &self.extra_qualifier, &self.domain
+        );
     }
 }
 
