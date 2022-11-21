@@ -19,8 +19,8 @@ Usage: chewy [OPTIONS]
 
 Options:
   -p, --path <PATH>    (Optional) Path to file that contains email addresses
-  -u, --username-only  (Optional) Boolean value indicating output should only render the usernames including the delimeter
-  -d, --domain-only    (Optional) Boolean value indicating output should only render the domains
+  -u, --username-only  (Optional) Flag indicating output should only render the usernames including the delimeter
+  -d, --domain-only    (Optional) Flag indicating output should only render the domains
   -h, --help           Print help information
   -V, --version        Print version information
 ```

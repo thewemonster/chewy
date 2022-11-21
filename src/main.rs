@@ -27,7 +27,7 @@ struct Cli {
     /// (Optional) Path to file that contains email addresses.
     #[arg(short, long)]
     path: Option<PathBuf>,
-    /// (Optional) Flag indicating output should only render the usernames excluding the delimeter
+    /// (Optional) Flag indicating output should only render the usernames including the delimeter
     #[arg(short, long, action = ArgAction::SetTrue)]
     username_only: Option<bool>,
     /// (Optional) Flag indicating output should only render the domains
