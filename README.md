@@ -2,7 +2,7 @@
 
 **A silly little utility I made to learn some Rust**
 
-### install & run
+### install
 
 ```sh
 # clone the repo
@@ -11,24 +11,20 @@
 ➜ cd chewy
 # build the program
 ➜ cargo build
-# run the program with the expected argument
-➜ cargo run -- "asdf+123@asdf.com"
 ```
 ### basic usage
 
 ```sh
-# the program takes a single email (for now) and spits out three parts of the
-# email: username, filtering delimeter, and the domain. Example inputs include:
-# username@domain.com, username+qualifier@domain.com,
-# uname.things@sub.domain.com, uname.things+qual@sub.domain.com
-➜ cargo run -- "asdf+123@asdf.com"
-    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
-     Running `target/debug/chewy 'asdf+123@asdf.com'`
-Username        | Extra Qualifier | Domain
-asdf            | 123             | asdf.com
+Usage: chewy [OPTIONS]
+
+Options:
+  -p, --path <PATH>    (Optional) Path to file that contains email addresses
+  -u, --username-only  (Optional) Boolean value indicating output should only render the usernames including the delimeter
+  -d, --domain-only    (Optional) Boolean value indicating output should only render the domains
+  -h, --help           Print help information
+  -V, --version        Print version information
 ```
 
 ### future development
 
-Looking forward to continue learning Rust. I'd like to implement some better
-error handling, accept a file with email addresses, and find ways to be more efficient. If you have suggestions, let me know!
+Looking forward to continue learning Rust. I'd like to implement some better error handling and find ways to be more efficient. If you have suggestions, let me know!
