@@ -1,8 +1,11 @@
 [package]
 name = "chewy"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
-author = "thewemonster (wes@thewemonster.com) (https://thewemonster.com)"
+authors = ["thewemonster (wes@thewemonster.com) (https://thewemonster.com)"]
+description = "Silly little rust program that splits email addresses into three parts, username, delimeter, and domain."
+repository = "https://github.com/thewemonster/chewy"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

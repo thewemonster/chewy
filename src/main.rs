@@ -1,38 +1,47 @@
 /*
 Author: thewemonster
+Email: wes@thewemonster.com
+Website: https://thewemonster.com
 Purpose: Learn rust by implementing some basics of the language
 */
 
 #![allow(unused)]
 
-use clap::{command, ArgAction, Parser};
+use clap::{command, ArgAction, ArgGroup, Parser};
 use regex::Regex;
 use std::{
-    fs::File,
-    io::{self, prelude::*, BufReader},
+    fs::{self, File},
+    io::{self, prelude::*, stdin, stdout, BufReader, BufWriter},
     path::PathBuf,
     process,
+    ptr::read,
 };
+
+#[derive(Parser)]
+#[command(version, about, author, group(ArgGroup::new("DataOutput").args(["username", "domain"])))]
+struct Cli {
+    /// (Optional) Path to file from which to read email addresses, otherwise pipe input
+    #[arg(short, long)]
+    infile: Option<PathBuf>,
+    /// (Optional) Path to output file, otherwise output will be stdout
+    #[arg(short, long)]
+    outfile: Option<PathBuf>,
+    /// (Optional) Limits output to usernames
+    #[arg(short, long, group = "DataOutput")]
+    username: bool,
+    /// (Optional) Limits output to domains
+    #[arg(short, long, group = "DataOutput")]
+    domain: bool,
+}
 
 /// constant to specify an email regular expression
 const EMAIL_REGEX: &str =
     r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})";
 
-#[derive(Parser, Debug)]
-#[command(version)]
-struct Cli {
-    // the input from the user; supposed to be an email.
-    // accepts things like username@domain.com, username+qualifier@domain.com,
-    // uname.things@sub.domain.com. uname.things+qual@sub.domain.com
-    /// (Optional) Path to file that contains email addresses.
-    #[arg(short, long)]
-    path: Option<PathBuf>,
-    /// (Optional) Flag indicating output should only render the usernames including the delimeter
-    #[arg(short, long, action = ArgAction::SetTrue)]
-    username_only: Option<bool>,
-    /// (Optional) Flag indicating output should only render the domains
-    #[arg(short, long, action = ArgAction::SetTrue)]
-    domain_only: Option<bool>,
+enum DataOutput {
+    Username,
+    Domain,
+    Everything,
 }
 
 #[derive(Debug)]
@@ -67,46 +76,61 @@ impl Email {
                     delimeter: String::from(items[1]),
                     domain: String::from(items[2]),
                 },
-                _ => fail_gracefully("invalid number of email components."),
+                _ => fail_gracefully("invalid email."),
             };
         }
         fail_gracefully("regex unable to match an email.");
     }
-    /// prettyprint's itself
-    fn prettyprint(&self) {
-        println!(
+
+    fn prettyprint_to_string(&self) -> String {
+        format!(
             "{0: <15} | {1: <15} | {2: <15}",
             &self.username, &self.delimeter, &self.domain
-        );
+        )
     }
 }
 
-/// print's the table headers to the terminal
-fn print_table_header() {
-    println!(
-        "{0: <15} | {1: <15} | {2: <15}",
-        "Username", "Delimeter", "Domain"
+fn triage_output (
+    mut reader: BufReader<Box<dyn Read>>,
+    mut writer: BufWriter<Box<dyn Write>>,
+    data_out_style: DataOutput,
+) {
+    match data_out_style {
+        DataOutput::Username => {
+            for line in reader.lines() {
+                writer.write(Email::from(line.unwrap()).username.as_bytes());
+                writer.write(b"\n");
+            }
+        }
+        DataOutput::Domain => {
+            for line in reader.lines() {
+                writer.write(Email::from(line.unwrap()).domain.as_bytes());
+                writer.write(b"\n");
+            }
+        }
+        DataOutput::Everything => {
+            prettyprint_table_headers(&mut writer);
+            for line in reader.lines() {
+                writer.write(
+                    Email::from(line.unwrap())
+                        .prettyprint_to_string()
+                        .as_bytes(),
+                );
+                writer.write(b"\n");
+            }
+        }
+    }
+}
+
+fn prettyprint_table_headers(writer: &mut BufWriter<Box<dyn Write>>) -> Result<usize, io::Error> {
+    writer.write(
+        format!(
+            "{0: <15} | {1: <15} | {2: <15}",
+            "Username", "Delimeter", "Domain"
+        )
+        .as_bytes(),
     );
-}
-
-fn output(reader: BufReader<File>, uname: bool, domain: bool) {
-    if uname {
-        // print just each username
-        for line in reader.lines() {
-            println!("{}", Email::from(line.unwrap()).username);
-        }
-    } else if domain {
-        // print just each domain
-        for line in reader.lines() {
-            println!("{}", Email::from(line.unwrap()).domain);
-        }
-    } else {
-        // both false, print full
-        print_table_header();
-        for line in reader.lines() {
-            Email::from(line.unwrap()).prettyprint();
-        }
-    }
+    writer.write(b"\n")
 }
 
 fn fail_gracefully(msg: &str) -> ! {
@@ -117,17 +141,28 @@ fn fail_gracefully(msg: &str) -> ! {
 /// main
 fn main() -> io::Result<()> {
     let args = Cli::parse();
-    let uname_only: bool = args.username_only.unwrap_or_else(|| (false));
-    let domain_only: bool = args.domain_only.unwrap_or_else(|| (false));
-    let reader = BufReader::new(File::open(args.path.unwrap())?);
 
-    if uname_only && domain_only {
-        fail_gracefully(
-            "username-only and domain-only are mutually exclusive, please set only one.",
-        );
-    } else {
-        output(reader, uname_only, domain_only);
-    }
+    let data_out_style = {
+        if args.domain {
+            DataOutput::Domain
+        } else if args.username {
+            DataOutput::Username
+        } else {
+            DataOutput::Everything
+        }
+    };
+
+    let mut reader: BufReader<Box<dyn Read>> = match args.infile {
+        Some(read_path) => BufReader::new(Box::new(File::open(read_path)?)),
+        None => BufReader::new(Box::new(stdin().lock())),
+    };
+
+    let mut writer: BufWriter<Box<dyn Write>> = match args.outfile {
+        Some(writer_path) => BufWriter::new(Box::new(File::create(writer_path)?)),
+        None => BufWriter::new(Box::new(stdout().lock())),
+    };
+
+    triage_output(reader, writer, data_out_style);
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 # chewy
 
-**A silly little utility I made to learn some Rust**
+**A silly little cli utility I made to learn some Rust**
 
 ### install
 
@@ -15,16 +15,19 @@
 ### basic usage
 
 ```sh
+Silly little rust program that splits email addresses into three parts, username, delimeter, and domain.
+
 Usage: chewy [OPTIONS]
 
 Options:
-  -p, --path <PATH>    (Optional) Path to file that contains email addresses
-  -u, --username-only  (Optional) Flag indicating output should only render the usernames including the delimeter
-  -d, --domain-only    (Optional) Flag indicating output should only render the domains
-  -h, --help           Print help information
-  -V, --version        Print version information
+  -i, --infile <INFILE>    (Optional) Path to file from which to read email addresses, otherwise pipe input
+  -o, --outfile <OUTFILE>  (Optional) Path to output file, otherwise output will be stdout
+  -u, --username           (Optional) Limits output to usernames
+  -d, --domain             (Optional) Limits output to domains
+  -h, --help               Print help information
+  -V, --version            Print version information
 ```
 
 ### future development
 
-Looking forward to continue learning Rust. I'd like to implement some better error handling and find ways to be more efficient. If you have suggestions, let me know!
+Looking forward to continue learning Rust. I'd like to implement some more elegant error handling and find ways to be more efficient. If you have suggestions, let me know!
